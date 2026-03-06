@@ -73,6 +73,41 @@ return {
 
 ---
 
+## Ticket 3: Location Header Missing `http://`
+
+**File:** `controllers/media.js`, line 111
+
+### Bug
+
+When the media is not yet ready and the API returns a `202 Accepted`, the `Location` header is missing the `http://` scheme prefix:
+
+```
+Location: hummingbird-production-alb-xxx.us-west-2.elb.amazonaws.com/v1/media/<id>/status
+```
+
+Clients cannot follow this as a redirect because it is not a valid absolute URI.
+
+### Code Diff
+
+**Before (broken):**
+```javascript
+res.set('Location', `${req.hostname}/v1/media/${mediaId}/status`);
+```
+
+**After (fixed):**
+```javascript
+res.set('Location', `${req.protocol}://${req.get('host')}/v1/media/${mediaId}/status`);
+```
+
+### Why It Was Broken
+
+Two problems with the original code:
+
+1. **Missing scheme** — `req.hostname` only returns the hostname (e.g. `hummingbird-alb-xxx.elb.amazonaws.com`) with no `http://` prefix, so the resulting `Location` header was not a valid absolute URI and clients could not follow it.
+2. **`req.hostname` drops the port** — `req.hostname` strips the port number, so non-standard ports (e.g. `:9000`) would be lost. `req.get('host')` preserves both the hostname and port (e.g. `host:9000`), producing a correct absolute URI.
+
+---
+
 ## Bonus: Status Never Changes (Two Bugs)
 
 ### Bug 1 — DynamoDB Key Casing Mismatch in `setMediaStatus`

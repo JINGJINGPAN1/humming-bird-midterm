@@ -108,7 +108,7 @@ const downloadController = async (req, res) => {
     if (media.status !== MEDIA_STATUS.PROCESSING) {
       const SIXTY_SECONDS = 60;
       res.set('Retry-After', SIXTY_SECONDS);
-      res.set('Location', `${req.hostname}/v1/media/${mediaId}/status`);
+      res.set('Location', `${req.protocol}://${req.get('host')}/v1/media/${mediaId}/status`);
       logger.info(
         { mediaId, currentStatus: media.status },
         'Media not ready for download, sending 202'
