@@ -108,6 +108,38 @@ Two problems with the original code:
 
 ---
 
+## Ticket 4: Download Endpoint Returns 202 Even When Status is COMPLETE
+
+**File:** `controllers/media.js`, line 108
+
+### Bug
+
+When the media status is `COMPLETE`, `GET /v1/media/:id/download` still returns `202 Accepted` ("Media processing in progress") instead of `302 Found` with a presigned S3 URL.
+
+### Code Diff
+
+**Before (broken):**
+```javascript
+if (media.status !== MEDIA_STATUS.PROCESSING) {
+```
+
+**After (fixed):**
+```javascript
+if (media.status !== MEDIA_STATUS.COMPLETE) {
+```
+
+### Why It Was Broken
+
+The status flow is `PENDING` → `PROCESSING` → `COMPLETE`. The condition `!== MEDIA_STATUS.PROCESSING` produces the exact opposite of the intended behavior:
+
+- When status is `PENDING` → `!== PROCESSING` is `true` → returns 202 ✅ (accidentally correct)
+- When status is `PROCESSING` → `!== PROCESSING` is `false` → falls through to 302 redirect ❌ (file not ready yet)
+- When status is `COMPLETE` → `!== PROCESSING` is `true` → returns 202 ❌ (should redirect to download)
+
+The fix changes the guard to `!== MEDIA_STATUS.COMPLETE`, so only a fully processed media record triggers the presigned URL redirect.
+
+---
+
 ## Bonus: Status Never Changes (Two Bugs)
 
 ### Bug 1 — DynamoDB Key Casing Mismatch in `setMediaStatus`
