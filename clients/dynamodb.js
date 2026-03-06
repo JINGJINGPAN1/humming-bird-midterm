@@ -151,7 +151,7 @@ const setMediaStatus = async ({ mediaId, newStatus }) => {
     TableName,
     Key: {
       PK: { S: `MEDIA#${mediaId}` },
-      SK: { S: 'metadata' },
+      SK: { S: 'METADATA' },
     },
     UpdateExpression: 'SET #status = :newStatus',
     ExpressionAttributeNames: { '#status': 'status' },
@@ -163,7 +163,7 @@ const setMediaStatus = async ({ mediaId, newStatus }) => {
       region: process.env.AWS_REGION,
     });
 
-    logger.info({ mediaId, sk: 'metadata', newStatus }, 'Updating media status in DynamoDB');
+    logger.info({ mediaId, sk: 'METADATA', newStatus }, 'Updating media status in DynamoDB');
     await client.send(command);
   } catch (error) {
     logger.error(error);
