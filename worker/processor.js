@@ -79,7 +79,7 @@ async function handleMessage(message) {
     return;
   }
 
-  if (parsed.type === 'media.v1.resize') {
+  if (parsed.type === 'media.v1.resize-media') {
     await handleResize(parsed.payload);
     return;
   }
