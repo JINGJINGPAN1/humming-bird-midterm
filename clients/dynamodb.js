@@ -81,6 +81,7 @@ const getMedia = async (mediaId) => {
       name: Item.name.S,
       mimetype: Item.mimetype.S,
       status: Item.status.S,
+      width: Number(Item.width.N),
     };
   } catch (error) {
     logger.error(error);
